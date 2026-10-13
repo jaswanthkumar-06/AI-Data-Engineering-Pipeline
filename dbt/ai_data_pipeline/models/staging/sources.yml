@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: raw
+    database: ai_data_pipeline
+    schema: raw
+
+    tables:
+      - name: customers
+      - name: restaurants
+      - name: food_items
+      - name: orders
+      - name: order_items
+      - name: reviews

@@ -1,0 +1,54 @@
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: ai_pipeline_postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ai_data_pipeline
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+  airflow:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+
+    container_name: ai_pipeline_airflow
+
+    restart: unless-stopped
+
+    depends_on:
+      - postgres
+
+    environment:
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "false"
+
+      AIRFLOW_UID: "50000"
+
+      DBT_HOST: postgres
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./:/opt/airflow/project
+
+    command: standalone
+
+
+volumes:
+  postgres_data:
